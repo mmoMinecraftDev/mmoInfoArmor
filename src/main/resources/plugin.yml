@@ -1,0 +1,11 @@
+name: mmoInfoArmor
+version: ${releaseVersion}.${buildNumber}
+description: Adds a {armor} token to the mmoInfo token list.
+author: mmoMinecraftDev
+website: http://mmo.me.uk
+main: mmo.Info.mmoInfoArmor
+depend: [Spout,mmoCore,mmoInfo]
+permissions:
+  mmo.info.armor:
+    description: Allows {food} to show the current players hunger level
+    default: true

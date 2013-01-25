@@ -34,6 +34,7 @@ package mmo.Info;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import mmo.Core.InfoAPI.MMOInfoEvent;
 import mmo.Core.MMO;
@@ -69,9 +70,10 @@ import org.getspout.spoutapi.player.SpoutPlayer;
 public class mmoInfoArmor extends MMOPlugin implements Listener {
 	private static final Map<Player, Widget> armorbar = new HashMap<Player, Widget>();
 	private static String config_displayas = "bar";
-	private boolean forceUpdate = true;
+	private static Boolean config_showoxygen = true;	
 	private static Color redBar = new Color(0.69f,0.09f,0.12f,1f);
 	private static Color greyBar = new Color(0.3411f,0.3411f,0.3411f,1f);
+	private static Color blueBar = new Color(0,0,1f,1f);	
 
 	@Override
 	public EnumBitSet mmoSupport(EnumBitSet support) {		
@@ -87,7 +89,8 @@ public class mmoInfoArmor extends MMOPlugin implements Listener {
 
 	@Override
 	public void loadConfiguration(final FileConfiguration cfg) {
-		config_displayas = cfg.getString("displayas", config_displayas);		
+		config_displayas = cfg.getString("displayas", config_displayas);	
+		config_showoxygen = cfg.getBoolean("showoxygen", config_showoxygen);
 	}
 
 	@EventHandler
@@ -99,17 +102,16 @@ public class mmoInfoArmor extends MMOPlugin implements Listener {
 				if (config_displayas.equalsIgnoreCase("bar")) {				
 					final CustomWidget widget = new CustomWidget();
 					armorbar.put(player, widget);
-					event.setWidget(plugin, widget);
-					forceUpdate = true;
+					event.setWidget(plugin, widget);					
 				} else { 
 					player.getMainScreen().getHungerBar().setVisible(false);
 					CustomLabel label = (CustomLabel)new CustomLabel().setResize(true).setFixed(true);
-					label.setText("20/20");
-					forceUpdate = true;
+					label.setText("20/20");					
 					armorbar.put(player, label);
 					event.setWidget(this.plugin, label);
+					event.setIcon("armor.png");
 				}
-				event.setIcon("armor.png");			
+
 			}
 		}
 	}
@@ -119,7 +121,16 @@ public class mmoInfoArmor extends MMOPlugin implements Listener {
 		private transient int tick = 0;
 		public void onTick() {
 			if (tick++ % 40 == 0) {		
-				setText(String.format(MMO.getArmor(getScreen().getPlayer()) + "/20"));
+				if (config_showoxygen) {
+					final int playerOxygen = Math.max(0, Math.min( 100, (int) (getScreen().getPlayer().getRemainingAir()/3)));
+					if (playerOxygen<=99 ) {
+						setText(String.format((getScreen().getPlayer().getRemainingAir()) + "/300"));	
+					} else {
+						setText(String.format(MMO.getArmor(getScreen().getPlayer()) + "/20"));
+					}
+				} else {
+					setText(String.format(MMO.getArmor(getScreen().getPlayer()) + "/20"));					
+				}
 			}
 		}
 	}
@@ -131,21 +142,48 @@ public class mmoInfoArmor extends MMOPlugin implements Listener {
 
 		public CustomWidget() {
 			super();
-			slider.setMargin(1).setPriority(RenderPriority.Normal).setHeight(5).shiftXPos(1).shiftYPos(1);
-			bar.setUrl("bar10.png").setPriority(RenderPriority.Lowest).setHeight(7).setWidth(103).shiftYPos(0).setMaxWidth(103);			
+			slider.setMargin(1).setPriority(RenderPriority.Normal).setHeight(5).shiftXPos(13).shiftYPos(1);
+			bar.setUrl("BarArmor1.png").setPriority(RenderPriority.Lowest).setHeight(7).setWidth(113).shiftXPos(1).shiftYPos(0).setMaxWidth(113);			
 			this.setLayout(ContainerType.OVERLAY).setMinWidth(103).setMaxWidth(103).setWidth(103);
 			this.addChildren(slider, bar);
 		}
-		
+
 		private transient int tick = 0;
 		public void onTick() {					
-			if (tick++ % 40 == 0) {												
-				final int armorLevel = Math.max(0, Math.min( 100, (int) (MMO.getArmor(getScreen().getPlayer()))));	
-				if (armorLevel>=33) {			
-					slider.setColor(greyBar).setWidth(armorLevel);				
+			if (tick++ % 40 == 0) {				
+				if (config_showoxygen) {
+					final int playerOxygen = Math.max(0, Math.min( 100, (int) (getScreen().getPlayer().getRemainingAir()/3)));				
+					if (playerOxygen<=99 ) {
+						if (bar.getUrl().equalsIgnoreCase("barArmor2.png")) {
+							bar.setUrl("BarOxygen2.png");
+						}
+						if (playerOxygen>=33 ) {			
+							slider.setColor(blueBar).setWidth(playerOxygen);						
+						} else  {
+							slider.setColor(redBar).setWidth(playerOxygen); 				
+						}					
+					} else {						
+						final int armorLevel = Math.max(0, Math.min( 100, (int) (MMO.getArmor(getScreen().getPlayer()))));	
+						if (!bar.getUrl().equalsIgnoreCase("barArmor2.png")) {
+							bar.setUrl("BarArmor2.png");
+						}
+						if (armorLevel>=33) {			
+							slider.setColor(greyBar).setWidth(armorLevel);	
+						} else {
+							slider.setColor(redBar).setWidth(armorLevel); 				
+						}	
+					}
 				} else {
-					slider.setColor(redBar).setWidth(armorLevel); 				
-				}				
+					final int armorLevel = Math.max(0, Math.min( 100, (int) (MMO.getArmor(getScreen().getPlayer()))));	
+					if (!bar.getUrl().equalsIgnoreCase("barArmor2.png")) {
+						bar.setUrl("BarArmor2.png");
+					}
+					if (armorLevel>=33) {			
+						slider.setColor(greyBar).setWidth(armorLevel);	
+					} else {
+						slider.setColor(redBar).setWidth(armorLevel); 				
+					}	
+				}
 			}
 		}
 	}

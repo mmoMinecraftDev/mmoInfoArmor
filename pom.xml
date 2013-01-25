@@ -5,7 +5,7 @@
 	<name>mmoInfoArmor</name>
 	<groupId>mmo.Info</groupId>
 	<artifactId>mmoInfoArmor</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.1</version>
 	<description>Adds a {armor} token to the mmoInfo token list.</description>
 	<url>http://github.com/mmoMinecraftDev/mmoInfoArmor</url>
 
